@@ -1,4 +1,4 @@
-package com.gateway;
+package com.gateway.filters;
 
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;

@@ -1,5 +1,6 @@
-package com.gateway;
+package com.gateway.servlets;
 
+import com.gateway.managers.MetricsManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;

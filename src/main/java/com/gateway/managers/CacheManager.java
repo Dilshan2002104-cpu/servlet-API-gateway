@@ -1,4 +1,4 @@
-package com.gateway;
+package com.gateway.managers;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

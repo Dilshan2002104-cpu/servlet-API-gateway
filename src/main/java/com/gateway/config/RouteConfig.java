@@ -1,4 +1,4 @@
-package com.gateway;
+package com.gateway.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

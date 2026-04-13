@@ -1,5 +1,8 @@
-package com.gateway;
+package com.gateway.servlets;
 
+import com.gateway.config.RouteConfig;
+import com.gateway.managers.CacheManager;
+import com.gateway.managers.CircuitBreaker;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
