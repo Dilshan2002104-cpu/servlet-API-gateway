@@ -22,6 +22,7 @@ public class LoggingFilter implements Filter {
 
         MetricsManager.incrementTotalRequests();
         MetricsManager.incrementRouteHit(uri);
+        System.out.println(">>> INCOMING REQUEST: [" + method + "] " + uri + " from " + ipAddress);
 
         try {
             chain.doFilter(request, response);
