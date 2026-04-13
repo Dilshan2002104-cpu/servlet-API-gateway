@@ -20,13 +20,17 @@ public class LoggingFilter implements Filter {
         String method = httpRequest.getMethod();
         String uri = httpRequest.getRequestURI();
 
-        System.out.println(">>> INCOMING REQUEST: [" + method + "] " + uri + " from " + ipAddress);
+        MetricsManager.incrementTotalRequests();
+        MetricsManager.incrementRouteHit(uri);
 
         try {
             chain.doFilter(request, response);
         } finally {
             long duration = System.currentTimeMillis() - startTime;
             HttpServletResponse httpResponse = (HttpServletResponse) response;
+            if (httpResponse.getStatus() >= 400) {
+                MetricsManager.incrementFailedRequests();
+            }
             System.out.println("<<< RESPONSE SENT: [" + method + "] " + uri + " - Status: " + httpResponse.getStatus() + " (" + duration + "ms)");
         }
     }

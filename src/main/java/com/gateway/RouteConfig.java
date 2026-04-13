@@ -15,10 +15,12 @@ public class RouteConfig {
     private static final Map<String, AtomicInteger> roundRobinCounters = new HashMap<>();
 
     static {
-        loadRoutes();
+        reloadRoutes();
     }
 
-    private static void loadRoutes() {
+    public static void reloadRoutes() {
+        routes.clear();
+        roundRobinCounters.clear();
         try (InputStream is = RouteConfig.class.getClassLoader().getResourceAsStream("routes.json")) {
             if (is != null) {
                 ObjectMapper mapper = new ObjectMapper();

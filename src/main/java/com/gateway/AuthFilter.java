@@ -46,7 +46,24 @@ public class AuthFilter implements Filter {
             return;
         }
 
+        // 3. Simple SQLi / XSS Protection
+        if (isMalicious(httpRequest.getQueryString())) {
+            httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            httpResponse.getWriter().write("{\"error\": \"Malicious content detected!\"}");
+            return;
+        }
+
         chain.doFilter(request, response);
+    }
+
+    private boolean isMalicious(String input) {
+        if (input == null) return false;
+        String lowerInput = input.toLowerCase();
+        return lowerInput.contains("<script>") || 
+               lowerInput.contains("select ") || 
+               lowerInput.contains("drop ") || 
+               lowerInput.contains("union ") ||
+               lowerInput.contains("delete ");
     }
 
     private boolean isValidJwt(String token) {

@@ -25,11 +25,31 @@ public class RouterServlet extends HttpServlet{
             return;
         }
 
+        if ("GET".equalsIgnoreCase(request.getMethod())) {
+            byte[] cachedData = CacheManager.get(targetUrl);
+            if (cachedData != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.setContentType("application/json");
+                response.addHeader("X-Cache", "HIT");
+                response.getOutputStream().write(cachedData);
+                return;
+            }
+        }
+
         try {
+            if (!CircuitBreaker.isAllowed(targetUrl)) {
+                response.setStatus(503); // Service Unavailable
+                response.getWriter().write("{\"error\": \"Service temporarily unavailable due to frequent failures (Circuit Breaker)\"}");
+                return;
+            }
+
+            // Build the proxy request
             java.net.http.HttpRequest.Builder requestBuilder = java.net.http.HttpRequest.newBuilder()
                     .uri(java.net.URI.create(targetUrl))
+                    .header("X-Proxied-By", "Java-API-Gateway")
                     .method(request.getMethod(), getRequestBody(request));
 
+            // Forward headers (except some restricted ones)
             java.util.Enumeration<String> headerNames = request.getHeaderNames();
             while (headerNames.hasMoreElements()) {
                 String headerName = headerNames.nextElement();
@@ -41,6 +61,12 @@ public class RouterServlet extends HttpServlet{
             java.net.http.HttpResponse<byte[]> proxyResponse = httpClient.send(requestBuilder.build(), 
                     java.net.http.HttpResponse.BodyHandlers.ofByteArray());
 
+            if (proxyResponse.statusCode() >= 500) {
+                CircuitBreaker.recordFailure(targetUrl);
+            } else {
+                CircuitBreaker.recordSuccess(targetUrl);
+            }
+
             response.setStatus(proxyResponse.statusCode());
             proxyResponse.headers().map().forEach((name, values) -> {
                 if (!name.equalsIgnoreCase("Transfer-Encoding") && !name.equalsIgnoreCase("Content-Length")) {
@@ -48,9 +74,14 @@ public class RouterServlet extends HttpServlet{
                 }
             });
 
+            if (proxyResponse.statusCode() == 200 && "GET".equalsIgnoreCase(request.getMethod())) {
+                CacheManager.put(targetUrl, proxyResponse.body());
+            }
+
             response.getOutputStream().write(proxyResponse.body());
             
         } catch (Exception e) {
+            CircuitBreaker.recordFailure(targetUrl);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.getWriter().write("{\"error\": \"Proxy error: " + e.getMessage() + "\"}");
         }
