@@ -1,0 +1,19 @@
+{
+  "routes": [
+    {
+      "path": "/users",
+      "target": "https://jsonplaceholder.typicode.com/users"
+    },
+    {
+      "path": "/posts",
+      "target": "https://jsonplaceholder.typicode.com/posts"
+    },
+    {
+      "path": "/comments",
+      "targets": [
+        "https://jsonplaceholder.typicode.com/comments",
+        "https://jsonplaceholder.typicode.com/comments?postId=1"
+      ]
+    }
+  ]
+}
